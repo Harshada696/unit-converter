@@ -8,20 +8,17 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Serve index.html from root folder
+// Serve static files from root
 app.use(express.static("."));
 
-// OpenAI Client
 const client = new OpenAI({
   apiKey: process.env.GROQ_API_KEY,
   baseURL: "https://api.groq.com/openai/v1",
 });
 
-// Tool Definition
 const tools = [
   {
     type: "function",
@@ -41,7 +38,6 @@ const tools = [
   }
 ];
 
-// API Route
 app.post("/convert", async (req, res) => {
   try {
     const { input } = req.body;
@@ -71,5 +67,4 @@ app.post("/convert", async (req, res) => {
   }
 });
 
-// Start Server
 export default app;
