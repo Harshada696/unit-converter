@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>AI Unit Converter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="style.css" rel="stylesheet">
+</head>
+<body>
+
+  <div class="card">
+    <div class="badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      AI Powered
+    </div>
+
+    <h2>Unit Converter</h2>
+    <p class="subtitle">Describe your conversion in plain English — let AI handle the math.</p>
+
+    <div class="examples">
+      <span class="pill" onclick="setExample(this)">10 km to miles</span>
+      <span class="pill" onclick="setExample(this)">72°F to Celsius</span>
+      <span class="pill" onclick="setExample(this)">5 lbs to kg</span>
+      <span class="pill" onclick="setExample(this)">2 cups to ml</span>
+    </div>
+
+    <div class="input-group">
+      <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+      </svg>
+      <input id="input" placeholder="e.g. Convert 100 miles to kilometers" autocomplete="off">
+    </div>
+
+    <button onclick="convert()" id="btn">
+      <span id="btn-inner">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+        Convert
+      </span>
+    </button>
+
+    <div id="result-wrap">
+      <div id="result-inner">
+        <div class="result-label">Result</div>
+        <div id="result"></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <p class="footer-note">Powered by eumentis · Natural language unit conversion</p>
+  </div>
+
+  <script>
+    function setExample(el) {
+      document.getElementById('input').value = el.textContent;
+      document.getElementById('input').focus();
+    }
+
+    async function convert() {
+      const input = document.getElementById("input").value.trim();
+      if (!input) return;
+
+      const btn = document.getElementById('btn');
+      const btnInner = document.getElementById('btn-inner');
+      const resultWrap = document.getElementById('result-wrap');
+      const result = document.getElementById('result');
+
+      // Loading state
+      btnInner.innerHTML = `<div class="dots"><span></span><span></span><span></span></div>`;
+      btn.disabled = true;
+
+      try {
+        const response = await fetch("/convert", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ input })
+        });
+        const data = await response.json();
+        result.textContent = data.result || data.error || "Something went wrong.";
+      } catch (e) {
+        result.textContent = "Unable to connect. Please try again.";
+      }
+
+      resultWrap.classList.add('visible');
+
+      // Reset button
+      btnInner.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+        Convert`;
+      btn.disabled = false;
+    }
+
+    document.getElementById('input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') convert();
+    });
+  </script>
+</body>
+</html>
