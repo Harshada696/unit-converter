@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import OpenAI from "openai";
+import path from "path";
+import { fileURLToPath } from "url";
 import { convertUnits } from "./unitConverter.js";
 
 dotenv.config();
@@ -10,11 +12,16 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static("."));
 
-// ✅ Serve static files from ROOT folder
-app.use(express.static(".")); 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// OpenAI (Groq) Client
+// ✅ THIS FIXES "Cannot GET /"
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
 const client = new OpenAI({
   apiKey: process.env.GROQ_API_KEY,
   baseURL: "https://api.groq.com/openai/v1",
@@ -46,7 +53,7 @@ app.post("/convert", async (req, res) => {
     const response = await client.chat.completions.create({
       model: "llama-3.1-8b-instant",
       messages: [{ role: "user", content: input }],
-      tools: tools,
+      tools,
       tool_choice: "auto"
     });
 
@@ -54,7 +61,6 @@ app.post("/convert", async (req, res) => {
 
     if (toolCall) {
       const args = JSON.parse(toolCall.function.arguments);
-
       const result = convertUnits(
         args.value,
         args.sourceUnit,
@@ -69,10 +75,8 @@ app.post("/convert", async (req, res) => {
     res.json({ result: response.choices[0].message.content });
 
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// ✅ IMPORTANT for Vercel
 export default app;
