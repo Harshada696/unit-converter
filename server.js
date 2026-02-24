@@ -72,8 +72,4 @@ app.post("/convert", async (req, res) => {
 });
 
 // Start Server
-const PORT = 8787;
-
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+export default app;
