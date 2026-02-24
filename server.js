@@ -11,9 +11,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from root
-app.use(express.static("."));
+// ✅ Serve static files from ROOT folder
+app.use(express.static(".")); 
 
+// OpenAI (Groq) Client
 const client = new OpenAI({
   apiKey: process.env.GROQ_API_KEY,
   baseURL: "https://api.groq.com/openai/v1",
@@ -53,7 +54,12 @@ app.post("/convert", async (req, res) => {
 
     if (toolCall) {
       const args = JSON.parse(toolCall.function.arguments);
-      const result = convertUnits(args.value, args.sourceUnit, args.targetUnit);
+
+      const result = convertUnits(
+        args.value,
+        args.sourceUnit,
+        args.targetUnit
+      );
 
       return res.json({
         result: `${args.value} ${args.sourceUnit} is ${result.toFixed(2)} ${args.targetUnit}`
@@ -63,8 +69,10 @@ app.post("/convert", async (req, res) => {
     res.json({ result: response.choices[0].message.content });
 
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: error.message });
   }
 });
 
+// ✅ IMPORTANT for Vercel
 export default app;
